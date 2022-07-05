@@ -2,6 +2,7 @@ package notify
 
 import (
 	_ "embed"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -14,6 +15,12 @@ var alerter []byte
 
 type Notifier struct {
 	alerterLocation string
+
+	Timeout      int
+	Title        string
+	SubTitle     string
+	ContentImage string
+	Message      string
 }
 
 const (
@@ -45,26 +52,23 @@ func install() error {
 	f := filepath.Join(p, binaryName)
 
 	_, err = os.Stat(f)
+	if err == nil {
+		// it must exist so don't install again
+		return nil
+	}
 
-	fmt.Println(err)
-
-	// don't create if already exists
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return nil
-		}
+	// if the error is that it doesn't exist, that's expected, so ignore it
+	if !os.IsNotExist(err) {
 		return err
 	}
 
 	err = os.WriteFile(f, alerter, 0644)
 	if err != nil {
-		fmt.Println(err.Error())
 		return err
 	}
 
 	err = os.Chmod(f, 0755)
 	if err != nil {
-		fmt.Println(err.Error())
 		return err
 	}
 	return nil
@@ -82,15 +86,34 @@ func NewWithCustomPath(alerterLocation string) *Notifier {
 func (n *Notifier) Notify() error {
 	args := []string{
 		"-closeLabel", "ignore",
-		"-timeout", "1",
-		"-title", "Bugsnag",
-		"-subtitle", "This is a subtitle",
 		"-json",
+	}
+
+	if n.Message == "" {
+		return errors.New("message must be set")
+	}
+	args = append(args, "-message", n.Message)
+
+	if n.Title == "" {
+		return errors.New("title must be set")
+	}
+
+	args = append(args, "-title", n.Title)
+
+	if n.SubTitle != "" {
+		args = append(args, "-subtitle", n.SubTitle)
+	}
+
+	if n.Timeout > 0 {
+		args = append(args, "-timeout", fmt.Sprintf("%v", n.Timeout))
+	}
+
+	if n.ContentImage != "" {
+		args = append(args, "-contentImage", n.ContentImage)
 	}
 
 	_, err := exec.Command(n.alerterLocation, args...).Output()
 	if err != nil {
-		fmt.Println(err.Error())
 		return nil
 	}
 	return nil
