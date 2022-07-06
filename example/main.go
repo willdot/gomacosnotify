@@ -1,6 +1,10 @@
 package main
 
-import notify "github.com/willdot/gomacosnotify"
+import (
+	"fmt"
+
+	notify "github.com/willdot/gomacosnotify"
+)
 
 func main() {
 	n, err := notify.New()
@@ -12,11 +16,17 @@ func main() {
 	n.Title = "hello"
 
 	n.SubTitle = "world"
-	n.Timeout = 2
+	n.Timeout = 5
 	n.ContentImage = "../RandomImage.png"
 
-	err = n.Notify()
+	n.CloseText = "CLOSE ME"
+
+	resp, err := n.Notify()
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Printf("action: %s\n", resp.ActivationValue)
+	fmt.Printf("action: %s\n", resp.ActivationType)
+
 }

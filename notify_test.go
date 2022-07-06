@@ -79,7 +79,7 @@ func TestNotifyNoTitleSet(t *testing.T) {
 	}
 
 	n.Message = "hello"
-	err = n.Notify()
+	_, err = n.Notify()
 	if err == nil {
 		t.Fatal("expected an error due to no title being set")
 	}
@@ -96,7 +96,7 @@ func TestNotifyNoMessageSet(t *testing.T) {
 	}
 
 	n.Title = "hello"
-	err = n.Notify()
+	_, err = n.Notify()
 	if err == nil {
 		t.Fatal("expected an error due to no message being set")
 	}

@@ -2,12 +2,14 @@ package notify
 
 import (
 	_ "embed"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
+
+	"github.com/pkg/errors"
 )
 
 //go:embed assets/alerter
@@ -21,6 +23,13 @@ type Notifier struct {
 	SubTitle     string
 	ContentImage string
 	Message      string
+
+	CloseText string
+}
+
+type Response struct {
+	ActivationType  string `json:"activationType"`
+	ActivationValue string `json:"activationValue"`
 }
 
 const (
@@ -83,19 +92,20 @@ func NewWithCustomPath(alerterLocation string) *Notifier {
 }
 
 // Will send a notification
-func (n *Notifier) Notify() error {
+func (n *Notifier) Notify() (Response, error) {
+	var resp Response
+
 	args := []string{
-		"-closeLabel", "ignore",
 		"-json",
 	}
 
 	if n.Message == "" {
-		return errors.New("message must be set")
+		return resp, errors.New("message must be set")
 	}
 	args = append(args, "-message", n.Message)
 
 	if n.Title == "" {
-		return errors.New("title must be set")
+		return resp, errors.New("title must be set")
 	}
 
 	args = append(args, "-title", n.Title)
@@ -112,9 +122,19 @@ func (n *Notifier) Notify() error {
 		args = append(args, "-contentImage", n.ContentImage)
 	}
 
-	_, err := exec.Command(n.alerterLocation, args...).Output()
-	if err != nil {
-		return nil
+	if n.CloseText != "" {
+		args = append(args, "-closeLabel", n.CloseText)
 	}
-	return nil
+
+	output, err := exec.Command(n.alerterLocation, args...).Output()
+	if err != nil {
+		return resp, err
+	}
+
+	err = json.Unmarshal(output, &resp)
+	if err != nil {
+		return resp, errors.Wrap(err, "error decoding response")
+	}
+
+	return resp, nil
 }
