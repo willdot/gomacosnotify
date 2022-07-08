@@ -19,9 +19,9 @@ func main() {
 		ContentImage: "../RandomImage.png",
 	}
 
-	_ = notification.SetTimeout(2)
+	_ = notification.SetTimeout(5)
 
-	resp, err := n.Notify(notification)
+	resp, err := n.Send(notification)
 	if err != nil {
 		panic(err)
 	}

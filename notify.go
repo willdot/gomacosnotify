@@ -17,7 +17,7 @@ const (
 	binaryName    = "alerter"
 )
 
-var defaultTimeoutSeconds = 1
+var defaultTimeoutSeconds = 10
 
 //go:embed assets/alerter
 var alerter []byte
@@ -37,10 +37,12 @@ type Notification struct {
 	timeout      *int
 }
 
-// SetTimeout will set the timeout in seconds. It must be > 0
+// SetTimeout will set the timeout in seconds. It must be >= 0 and if not set, a default will be applied.
+// If 0 is supplied, the notification won't timeout and will remain until the user has closed it or taken
+// action.
 func (n *Notification) SetTimeout(timeout int) error {
 	if timeout < 0 {
-		return errors.New("timeout must be greater than 0")
+		return errors.New("timeout must be greater or equal to 0")
 	}
 	n.timeout = &timeout
 	return nil
@@ -72,23 +74,26 @@ func NewWithCustomPath(alerterLocation string) *Notifier {
 	}
 }
 
-// Will send a notification
-func (n *Notifier) Notify(notification Notification) (Response, error) {
+// Send will send a notification.
+// If a timeout is set, and a user interacts with the notification after the timeout has expired,
+// the user interaction will not be captured.
+// This function blocks and will not return unless either a configured timeout expires or a user takes "action"
+// on the notification.
+func (n *Notifier) Send(notification Notification) (Response, error) {
 	var resp Response
-
-	args := []string{
-		"-json",
-	}
 
 	if notification.Message == "" {
 		return resp, errors.New("message must be set")
 	}
-	args = append(args, "-message", notification.Message)
-
 	if notification.Title == "" {
 		return resp, errors.New("title must be set")
 	}
 
+	args := []string{
+		"-json", // ensures the response is in JSON format so we can unmarshal it
+	}
+
+	args = append(args, "-message", notification.Message)
 	args = append(args, "-title", notification.Title)
 
 	if notification.SubTitle != "" {
@@ -98,7 +103,7 @@ func (n *Notifier) Notify(notification Notification) (Response, error) {
 	if notification.timeout == nil {
 		notification.timeout = &defaultTimeoutSeconds
 	}
-	if *notification.timeout > 0 {
+	if *notification.timeout >= 0 {
 		args = append(args, "-timeout", fmt.Sprintf("%v", *notification.timeout))
 	}
 
@@ -124,33 +129,34 @@ func (n *Notifier) Notify(notification Notification) (Response, error) {
 }
 
 func install() error {
-	p := path.Join(os.TempDir(), tempDirectory)
+	tempDirPath := path.Join(os.TempDir(), tempDirectory)
 
 	// ensure the temp directory already exists
-	err := os.MkdirAll(p, os.ModePerm)
+	err := os.MkdirAll(tempDirPath, os.ModePerm)
 	if err != nil {
 		return err
 	}
 
-	f := filepath.Join(p, binaryName)
+	alerterPath := filepath.Join(tempDirPath, binaryName)
 
-	_, err = os.Stat(f)
+	_, err = os.Stat(alerterPath)
+	// it must exist so don't install again
 	if err == nil {
-		// it must exist so don't install again
 		return nil
 	}
 
-	// if the error is that it doesn't exist, that's expected, so ignore it
+	// we are expecting a not exists error, so only return if it's a different error
 	if !os.IsNotExist(err) {
 		return err
 	}
 
-	err = os.WriteFile(f, alerter, 0644)
+	err = os.WriteFile(alerterPath, alerter, 0644)
 	if err != nil {
 		return err
 	}
 
-	err = os.Chmod(f, 0755)
+	// make the binary runnable
+	err = os.Chmod(alerterPath, 0755)
 	if err != nil {
 		return err
 	}
