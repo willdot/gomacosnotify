@@ -13,10 +13,11 @@ func main() {
 	}
 
 	notification := notify.Notification{
-		Message:      "YO",
-		Title:        "hello",
-		SubTitle:     "world",
+		Title:        "Demo notification",
+		SubTitle:     "Some information",
+		Message:      "Some more detailed information",
 		ContentImage: "../RandomImage.png",
+		CloseText:    "go away",
 	}
 
 	_ = notification.SetTimeout(5)
@@ -26,7 +27,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("action: %s\n", resp.ActivationValue)
-	fmt.Printf("action: %s\n", resp.ActivationType)
+	fmt.Printf("action type: %s\n", resp.ActivationType)
+	fmt.Printf("action value: %s\n", resp.ActivationValue)
 
 }
