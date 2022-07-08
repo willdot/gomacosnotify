@@ -12,16 +12,16 @@ func main() {
 		panic(err)
 	}
 
-	n.Message = "YOYOYOYOYOYOYOYO"
-	n.Title = "hello"
+	notification := notify.Notification{
+		Message:      "YO",
+		Title:        "hello",
+		SubTitle:     "world",
+		ContentImage: "../RandomImage.png",
+	}
 
-	n.SubTitle = "world"
-	n.Timeout = 5
-	n.ContentImage = "../RandomImage.png"
+	_ = notification.SetTimeout(2)
 
-	n.CloseText = "CLOSE ME"
-
-	resp, err := n.Notify()
+	resp, err := n.Notify(notification)
 	if err != nil {
 		panic(err)
 	}

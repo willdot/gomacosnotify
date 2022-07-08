@@ -78,8 +78,11 @@ func TestNotifyNoTitleSet(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	n.Message = "hello"
-	_, err = n.Notify()
+	notification := Notification{
+		Message: "hello",
+	}
+
+	_, err = n.Notify(notification)
 	if err == nil {
 		t.Fatal("expected an error due to no title being set")
 	}
@@ -95,10 +98,22 @@ func TestNotifyNoMessageSet(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	n.Title = "hello"
-	_, err = n.Notify()
+	notification := Notification{
+		Title: "hello",
+	}
+
+	_, err = n.Notify(notification)
 	if err == nil {
 		t.Fatal("expected an error due to no message being set")
+	}
+}
+
+func TestNotificationLessThanZero(t *testing.T) {
+	notification := Notification{}
+
+	err := notification.SetTimeout(-1)
+	if err == nil {
+		t.Fatal("expected error for setting timeout less than zero, but didn't get one")
 	}
 }
 
