@@ -29,12 +29,12 @@ type Notifier struct {
 
 // Notification contains all of the fields and settings that a notification can have
 type Notification struct {
-	Timeout      *int
 	Title        string
 	SubTitle     string
 	ContentImage string
 	Message      string
 	CloseText    string
+	timeout      *int
 }
 
 // SetTimeout will set the timeout in seconds. It must be > 0
@@ -42,7 +42,7 @@ func (n *Notification) SetTimeout(timeout int) error {
 	if timeout < 0 {
 		return errors.New("timeout must be greater than 0")
 	}
-	n.Timeout = &timeout
+	n.timeout = &timeout
 	return nil
 }
 
@@ -95,11 +95,11 @@ func (n *Notifier) Notify(notification Notification) (Response, error) {
 		args = append(args, "-subtitle", notification.SubTitle)
 	}
 
-	if notification.Timeout == nil {
-		notification.Timeout = &defaultTimeoutSeconds
+	if notification.timeout == nil {
+		notification.timeout = &defaultTimeoutSeconds
 	}
-	if *notification.Timeout > 0 {
-		args = append(args, "-timeout", fmt.Sprintf("%v", *notification.Timeout))
+	if *notification.timeout > 0 {
+		args = append(args, "-timeout", fmt.Sprintf("%v", *notification.timeout))
 	}
 
 	if notification.ContentImage != "" {
