@@ -15,6 +15,8 @@ if err != nil {
 }
 ```
 ### Supplying custom installation path
+If you don't want this library to install something, you can download the binary [here](https://github.com/vjeantet/alerter) and put it into a location of your choice
+and then provide the path to that binary.
 ``` go
 notifier := notify.NewWithCustomPath("some/path/to/alerter")
 ```
@@ -102,3 +104,8 @@ if err != nil {
     panic(err)
 }
 ```
+
+# Influences
+This library was influenced by [gosx-notifier](github.com/deckarep/gosx-notifier) and [notify](https://github.com/martinlindhe/notify), both of which are either deprecated or no longer maintained.
+
+The binary installed that makes this all possible can be found [here](https://github.com/vjeantet/alerter). 
