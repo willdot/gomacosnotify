@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -34,6 +35,7 @@ type Notification struct {
 	ContentImage string
 	Message      string
 	CloseText    string
+	Actions      []string
 	timeout      *int
 }
 
@@ -115,6 +117,12 @@ func (n *Notifier) Send(notification Notification) (Response, error) {
 		args = append(args, "-closeLabel", notification.CloseText)
 	}
 
+	if len(notification.Actions) > 0 {
+
+		actions := strings.Join(notification.Actions, ",")
+		args = append(args, "-actions", actions)
+	}
+
 	output, err := exec.Command(n.alerterLocation, args...).Output()
 	if err != nil {
 		return resp, err
@@ -124,6 +132,8 @@ func (n *Notifier) Send(notification Notification) (Response, error) {
 	if err != nil {
 		return resp, errors.Wrap(err, "error decoding response")
 	}
+
+	fmt.Println(resp)
 
 	return resp, nil
 }

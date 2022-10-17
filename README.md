@@ -8,7 +8,7 @@ To do this it installs a binary called [alerter](https://github.com/vjeantet/ale
 # Usage
 ## Creating the notification client
 ### Using the installation method
-``` go
+```go
 notifier, err := notify.New()
 if err != nil {
     panic(err)
@@ -17,13 +17,13 @@ if err != nil {
 ### Supplying custom installation path
 If you don't want this library to install something, you can download the binary [here](https://github.com/vjeantet/alerter) and put it into a location of your choice
 and then provide the path to that binary.
-``` go
+```go
 notifier := notify.NewWithCustomPath("some/path/to/alerter")
 ```
 
 ## Sending a notification
 
-``` go
+```go
 notification := notify.Notification{
     Title:        "Demo notification",
     SubTitle:     "Some information",
@@ -54,7 +54,7 @@ A timeout (in seconds) can be configured. Some things to note:
 * A timeout of 0 seconds will mean the notification will not disappear until the user actions it.
 * When calling the `Send` function, it will block and not return until either the timeout times out, or the user actions the notification.
 
-``` go
+```go
 err := notification.SetTimeout(5)
 if err != nil {
     panic(err)
@@ -67,7 +67,7 @@ MacOS notifications support user actions. Currently only closing is supported by
 
 The following example will create a notification that has a close button with the text `ignore`.
 
-``` go
+```go
 notification := notify.Notification{
     Title:        "Demo notification",
     SubTitle:     "Some information",
@@ -91,12 +91,29 @@ fmt.Printf("action value: %s\n", resp.ActivationValue)
 ### Images
 You can include a small thumbnail image inside the notification by passing in the path to a `png` file.
 
-``` go
+```go
 notification := notify.Notification{
     Title:        "Demo notification",
     SubTitle:     "Some information",
     Message:      "Some more detailed information",
     ContentImage: "../RandomImage.png",
+}
+
+resp, err := n.Send(notification)
+if err != nil {
+    panic(err)
+}
+```
+
+### Additional action buttons
+You can also have a list of custom action buttons to select which will appear in the drop down list of actions on the notification.
+
+```go
+notification := notify.Notification{
+    Title:        "Demo notification",
+    SubTitle:     "Some information",
+    Message:      "Some more detailed information",
+    Actions:      []string{"Option1", "Option2"}
 }
 
 resp, err := n.Send(notification)

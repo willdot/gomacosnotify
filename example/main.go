@@ -18,6 +18,7 @@ func main() {
 		Message:      "Some more detailed information",
 		ContentImage: "../RandomImage.png",
 		CloseText:    "go away",
+		Actions:      []string{"Option 1", "Option 2"},
 	}
 
 	_ = notification.SetTimeout(5)
