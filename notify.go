@@ -133,8 +133,6 @@ func (n *Notifier) Send(notification Notification) (Response, error) {
 		return resp, errors.Wrap(err, "error decoding response")
 	}
 
-	fmt.Println(resp)
-
 	return resp, nil
 }
 
