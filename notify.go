@@ -30,13 +30,18 @@ type Notifier struct {
 
 // Notification contains all of the fields and settings that a notification can have
 type Notification struct {
-	Title        string
-	SubTitle     string
-	ContentImage string
-	Message      string
-	CloseText    string
-	Actions      []string
-	timeout      *int
+	Sender        string
+	AppIcon       string
+	Title         string
+	SubTitle      string
+	ContentImage  string
+	Message       string
+	CloseText     string
+	DropdownLabel string
+	Actions       []string
+	timeout       *int
+	GroupID       string
+	ReplaceID     string
 }
 
 // SetTimeout will set the timeout in seconds. It must be >= 0 and if not set, a default will be applied.
@@ -68,7 +73,7 @@ func New() (*Notifier, error) {
 	}, nil
 }
 
-// New will initialize a new notifier but allows the location of a prexisting alerter binary to be defined. This will
+// NewWithCustomPath will initialize a new notifier but allows the location of a prexisting alerter binary to be defined. This will
 // not install anything on your machine
 func NewWithCustomPath(alerterLocation string) *Notifier {
 	return &Notifier{
@@ -98,6 +103,14 @@ func (n *Notifier) Send(notification Notification) (Response, error) {
 	args = append(args, "-message", notification.Message)
 	args = append(args, "-title", notification.Title)
 
+	if notification.Sender != "" {
+		args = append(args, "-sender", notification.Sender)
+	}
+
+	if notification.AppIcon != "" {
+		args = append(args, "-appIcon", notification.AppIcon)
+	}
+
 	if notification.SubTitle != "" {
 		args = append(args, "-subtitle", notification.SubTitle)
 	}
@@ -117,10 +130,21 @@ func (n *Notifier) Send(notification Notification) (Response, error) {
 		args = append(args, "-closeLabel", notification.CloseText)
 	}
 
-	if len(notification.Actions) > 0 {
+	if notification.GroupID != "" {
+		args = append(args, "-group", notification.GroupID)
+	}
 
+	if notification.ReplaceID != "" {
+		args = append(args, "-remove", notification.ReplaceID)
+	}
+
+	if len(notification.Actions) > 0 {
 		actions := strings.Join(notification.Actions, ",")
 		args = append(args, "-actions", actions)
+
+		if notification.DropdownLabel != "" {
+			args = append(args, "-dropdownLabel", notification.DropdownLabel)
+		}
 	}
 
 	output, err := exec.Command(n.alerterLocation, args...).Output()
